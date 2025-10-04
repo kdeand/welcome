@@ -1,0 +1,133 @@
+section .data
+    stdin       equ 0
+    stdout      equ 1
+    sys_exit    equ 1
+    sys_write   equ 4
+    sys_read    equ 3
+
+    prompt1 db 'Enter score 1: ', 0xa
+    len1 equ $- prompt1
+
+    prompt2 db 'Enter score 2: ', 0xa
+    len2 equ $- prompt2
+    
+    prompt3 db 'Enter score 3: ', 0xa
+    len3 equ $- prompt3
+
+    avg_msg db 0xA, 'The average grade is: '
+    len_avg_msg equ $ - avg_msg
+    
+    in_range_msg    db 'This grade is in the 4-7 range.', 0xa
+    len_in equ $- in_range_msg
+
+    out_range_msg   db 'This grade is outside the 4-7 range.', 0xa
+    len_out equ $- out_range_msg
+
+section .bss
+    input_char  resb 2
+    score1      resw 1
+    score2      resw 1
+    score3      resw 1
+    average     resw 1
+
+section .text
+global _start
+
+_start:
+    mov eax, sys_write
+    mov ebx, stdout
+    mov ecx, prompt1
+    mov edx, len1
+    int 0x80
+
+    mov eax, sys_read
+    mov ebx, stdin
+    mov ecx, input_char
+    mov edx, 2
+    int 0x80
+
+    movzx eax, byte [input_char] 
+    sub eax, '0'                 
+    mov [score1], ax             
+
+    mov eax, sys_write
+    mov ebx, stdout
+    mov ecx, prompt2
+    mov edx, len2
+    int 0x80
+    
+    mov eax, sys_read
+    mov ebx, stdin
+    mov ecx, input_char
+    mov edx, 2
+    int 0x80
+
+    movzx eax, byte [input_char] 
+    sub eax, '0'
+    mov [score2], ax
+
+    mov eax, sys_write
+    mov ebx, stdout
+    mov ecx, prompt3
+    mov edx, len3
+    int 0x80
+
+    mov eax, sys_read
+    mov ebx, stdin
+    mov ecx, input_char
+    mov edx, 2
+    int 0x80
+
+    movzx eax, byte [input_char] 
+    sub eax, '0'
+    mov [score3], ax
+
+    mov ax, [score1]
+    add ax, [score2]
+    add ax, [score3]
+
+    xor dx, dx
+    mov bx, 3
+    div bx
+    mov [average], ax
+
+    mov eax, sys_write
+    mov ebx, stdout
+    mov ecx, avg_msg
+    mov edx, len_avg_msg
+    int 0x80
+
+    movzx eax, word [average]   
+    add eax, '0'                
+    mov [input_char], al        
+
+    mov eax, sys_write
+    mov ebx, stdout
+    mov ecx, input_char
+    mov edx, 1
+    int 0x80
+
+    movzx eax, word [average]   
+    test eax, 0100b             
+
+    jz print_OutRange
+
+    mov eax, sys_write
+    mov ebx, stdout
+    mov ecx, in_range_msg
+    mov edx, len_in
+    int 0x80
+    jmp exitProgram
+
+print_OutRange:
+    mov eax, sys_write
+    mov ebx, stdout
+    mov ecx, out_range_msg
+    mov edx, len_out
+    int 0x80
+
+exitProgram:
+    ; --- Exit ---
+    mov eax, sys_exit
+    xor ebx, ebx
+    int 0x80
