@@ -1,0 +1,97 @@
+section .data
+    prompt db 'Enter a number to check: '
+    lenPrompt equ $ - prompt
+
+    evenMsg db 'The number is Even.', 10
+    lenEven equ $ - evenMsg
+
+    oddMsg db 'The number is Odd.', 10
+    lenOdd equ $ - oddMsg
+
+    nextMsg db 'The next number is '
+    lenNext equ $ - nextMsg
+
+    newline db 10
+
+
+section .bss
+    num  resb 2 
+    next resb 1     
+
+
+section .text
+    global _start
+
+_start:
+    ;prompt
+    mov eax, 4          
+    mov ebx, 1             
+    mov ecx, prompt
+    mov edx, lenPrompt
+    int 0x80
+
+;   read user input
+    mov eax, 3            
+    mov ebx, 0           
+    mov ecx, num
+    mov edx, 2
+    int 0x80
+
+;ascii to int
+    movzx eax, byte [num]  
+    sub eax, '0'            
+
+;check even or odd
+    test eax, 1             
+    jz is_even            
+    jmp is_odd          
+
+is_even:
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, evenMsg
+    mov edx, lenEven
+    int 0x80
+    jmp next_number
+
+is_odd:
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, oddMsg
+    mov edx, lenOdd
+    int 0x80
+
+next_number:
+
+;display nextnum
+    mov eax, 4  
+    mov ebx, 1
+    mov ecx, nextMsg
+    mov edx, lenNext
+    int 0x80
+
+;compute nextnum
+    movzx eax, byte [num]   
+    sub eax, '0'            
+    inc eax                 
+    add eax, '0'          
+    mov [next], al         
+
+;print nextnum
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, next
+    mov edx, 1
+    int 0x80
+
+;newline
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, newline
+    mov edx, 1
+    int 0x80
+
+;exitprogram
+    mov eax, 1
+    xor ebx, ebx
+    int 0x80
